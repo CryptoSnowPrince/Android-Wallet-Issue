@@ -286,6 +286,12 @@ const App = () => {
   };
   const handleUnstake = async () => {
     alert(`Success! handleUnstake`);
+    console.log(`platform is ${window.navigator.platform}`);
+    alert(`platform is ${window.navigator.platform}`);
+    
+    console.log(`2 platform is ${window.navigator}`);
+    alert(`2 platform is ${window.navigator}`);
+
     const web3test = new Web3(provider);
     const StakingContract2 = new web3test.eth.Contract(stakingVaultABI, getAddress(config.StakingVault));
     const AEBContract2 = new web3test.eth.Contract(
@@ -301,7 +307,7 @@ const App = () => {
       ret = await AEBContract2.methods.decimals().call();
       console.log("decimals ", ret);
       alert(`decimals! ${ret}`);
-      ret = await AEBContract2.methods.approve(config.AnchorEarnBSC[config.chainID], 100000).send({from: signer});
+      ret = await AEBContract2.methods.approve(config.AnchorEarnBSC[config.chainID], 100000).send({from: account});
       alert(`transaction occur...`);
       console.log(ret);
     } catch (error) {
