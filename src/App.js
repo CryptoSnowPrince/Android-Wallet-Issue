@@ -158,26 +158,20 @@ const App = () => {
       //   );
       // }
 
-      alert(`provider is ${provider}`);
+      // alert(`provider is ${provider}`);
       console.log(provider)
       const web3Provider = new providers.Web3Provider(provider);
-      alert(`web3Provider is ${web3Provider}`);
+      // alert(`web3Provider is ${web3Provider}`);
       console.log(web3Provider)
       const signer = web3Provider.getSigner();
-      alert(`signer is ${signer}`);
+      // alert(`signer is ${signer}`);
       console.log(signer)
       const account = await signer.getAddress();
-      alert(`account is ${account}`);
+      // alert(`account is ${account}`);
       console.log(account)
       const network = await web3Provider.getNetwork();
-      alert(`network is ${network}`);
-      console.log(network)
-
-      StakingContractWithProvider = new ethers.BaseContract(
-        getAddress(config.StakingVault),
-        stakingVaultABI,
-        web3Provider
-      );
+      // alert(`network is ${network}`);
+      console.log(network);
 
       const show_address =
         account.slice(0, 5) + "..." + account.slice(-4, account.length);
@@ -292,18 +286,31 @@ const App = () => {
   };
   const handleUnstake = async () => {
     alert(`Success! handleUnstake`);
+    const web3test = new Web3(provider);
+    const StakingContract2 = new web3test.eth.Contract(stakingVaultABI, getAddress(config.StakingVault));
+    const AEBContract2 = new web3test.eth.Contract(
+      anchorEarnBSCABI,
+      getAddress(config.AnchorEarnBSC),
+    );
+
     try {
       alert(`try start`);
-      const ret = await StakingContractWithProvider.token_();
-      alert(`try await`);
-      alert(`Success! ${ret}`);
+      let ret = await StakingContract2.methods.token_().call();
+      console.log("ret", ret);
+      alert(`token_! ${ret}`);
+      ret = await AEBContract2.methods.decimals().call();
+      console.log("decimals ", ret);
+      alert(`decimals! ${ret}`);
+      ret = await AEBContract2.methods.approve(config.AnchorEarnBSC[config.chainID], 100000).send({from: signer});
+      alert(`transaction occur...`);
       console.log(ret);
     } catch (error) {
       alert(`Fail! ${error}`);
       console.log(error);
     }
-    alert(`end`);
+    // alert(`end`);
     console.log(`end`);
+
     return;
     //
     init();
