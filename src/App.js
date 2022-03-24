@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useReducer } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
-import { providers/*, ethers*/ } from "ethers";
+import { providers, ethers } from "ethers";
 import Web3 from "web3";
 import config from "./contracts/config";
 import anchorEarnBSCABI from "./contracts/abi/AnchorEarnBSC.json";
@@ -28,7 +28,17 @@ if (typeof window !== "undefined") {
   web3Modal = new Web3Modal({
     network: "mainnet", // optional
     cacheProvider: true,
-    providerOptions, // required
+    providerOptions: {
+      walletconnect: {
+        package: WalletConnectProvider,
+        options: {
+          infuraId: config.INFURA_ID, // required
+          rpc: {
+            56: config.RpcURL[config.chainID],
+          },
+        },
+      },
+    }, // required
     theme: "dark",
   });
 }
@@ -112,6 +122,8 @@ const BusdContract = new web3.eth.Contract(
   getAddress(config.BUSD)
 )
 
+let StakingContractWithProvider;
+
 const App = () => {
   const [showAccountAddress, setShowAccountAddress] = useState("");
   const [account, setAccount] = useState("");
@@ -134,22 +146,39 @@ const App = () => {
   const connect = useCallback(async function () {
     try {
       const provider = await web3Modal.connect();
-      if (window.ethereum) {
-        // check if the chain to connect to is installed
-        await window.ethereum.request({
-          method: "wallet_switchEthereumChain",
-          params: [{ chainId: config.chainHexID[config.chainID] }], // chainId must be in hexadecimal numbers
-        });
-      } else {
-        alert(
-          "MetaMask is not installed. Please consider installing it: https://metamask.io/download.html"
-        );
-      }
+      // if (window.ethereum) {
+      //   // check if the chain to connect to is installed
+      //   await window.ethereum.request({
+      //     method: "wallet_switchEthereumChain",
+      //     params: [{ chainId: config.chainHexID[config.chainID] }], // chainId must be in hexadecimal numbers
+      //   });
+      // } else {
+      //   alert(
+      //     "MetaMask is not installed. Please consider installing it: https://metamask.io/download.html"
+      //   );
+      // }
 
+      alert(`provider is ${provider}`);
+      console.log(provider)
       const web3Provider = new providers.Web3Provider(provider);
+      alert(`web3Provider is ${web3Provider}`);
+      console.log(web3Provider)
       const signer = web3Provider.getSigner();
+      alert(`signer is ${signer}`);
+      console.log(signer)
       const account = await signer.getAddress();
+      alert(`account is ${account}`);
+      console.log(account)
       const network = await web3Provider.getNetwork();
+      alert(`network is ${network}`);
+      console.log(network)
+
+      StakingContractWithProvider = new ethers.BaseContract(
+        getAddress(config.StakingVault),
+        stakingVaultABI,
+        web3Provider
+      );
+
       const show_address =
         account.slice(0, 5) + "..." + account.slice(-4, account.length);
       setSigner(web3Provider.getSigner());
@@ -262,6 +291,21 @@ const App = () => {
     }
   };
   const handleUnstake = async () => {
+    alert(`Success! handleUnstake`);
+    try {
+      alert(`try start`);
+      const ret = await StakingContractWithProvider.token_();
+      alert(`try await`);
+      alert(`Success! ${ret}`);
+      console.log(ret);
+    } catch (error) {
+      alert(`Fail! ${error}`);
+      console.log(error);
+    }
+    alert(`end`);
+    console.log(`end`);
+    return;
+    //
     init();
     if (stakedBalanceAEB <= 0) {
       alert(`There is not staked token.`);
@@ -295,7 +339,7 @@ const App = () => {
       return;
     }
     const busdamount = await BusdContract.methods.balanceOf(getAddress(config.StakingVault)).call();
-    if(web3.utils.fromWei(busdamount, "ether") < 1) {
+    if (web3.utils.fromWei(busdamount, "ether") < 1) {
       console.log("busdamount: ", busdamount);
       alert(`You can't get enough BUSD Reward, so you can lost your transaction fee...`);
     }
