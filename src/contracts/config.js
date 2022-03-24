@@ -2,9 +2,6 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-console.log(process.env.REACT_APP_INFURA_ID);
-console.log(process.env);
-
 const config = {
   AnchorEarnBSC: {
     56: "0x0EA7C4c6A230e091e930b0E6fD9D5c18a6699Cbc",
